@@ -1,10 +1,6 @@
 clamd
 =====
 
-.. image:: https://travis-ci.org/graingert/python-clamd.png?branch=master
-   :alt: travis build status
-   :target: https://travis-ci.org/graingert/python-clamd
-
 About
 -----
 `clamd` is a portable Python module to use the ClamAV anti-virus engine on 
