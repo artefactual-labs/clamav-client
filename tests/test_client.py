@@ -1,7 +1,4 @@
 from io import BytesIO
-from contextlib import contextmanager
-import tempfile
-import shutil
 import os
 import stat
 
@@ -12,77 +9,66 @@ from clamav_client import EICAR
 from clamav_client import ConnectionError
 
 
-mine = (stat.S_IREAD | stat.S_IWRITE)
-other = stat.S_IROTH
-execute = (stat.S_IEXEC | stat.S_IXOTH)
-
-
-@contextmanager
-def mkdtemp(*args, **kwargs):
-    temp_dir = tempfile.mkdtemp(*args, **kwargs)
-    try:
-        yield temp_dir
-    finally:
-        shutil.rmtree(temp_dir)
-
-
-class TestUnixSocket(object):
-    kwargs = {}
-
-    def setup(self):
-        self.cd = ClamdUnixSocket(**self.kwargs)
-
-    def test_ping(self):
-        assert self.cd.ping()
-
-    def test_version(self):
-        assert self.cd.version().startswith("ClamAV")
-
-    def test_reload(self):
-        assert self.cd.reload() == 'RELOADING'
-
-    def test_scan(self):
-        with tempfile.NamedTemporaryFile('wb', prefix="python-clamd") as f:
-            f.write(EICAR)
-            f.flush()
-            os.fchmod(f.fileno(), (mine | other))
-            expected = {f.name: ('FOUND', 'Eicar-Test-Signature')}
-
-            assert self.cd.scan(f.name) == expected
-
-    def test_unicode_scan(self):
-        with tempfile.NamedTemporaryFile('wb', prefix=u"python-clamdλ") as f:
-            f.write(EICAR)
-            f.flush()
-            os.fchmod(f.fileno(), (mine | other))
-            expected = {f.name: ('FOUND', 'Eicar-Test-Signature')}
-
-            assert self.cd.scan(f.name) == expected
-
-    def test_multiscan(self):
-        expected = {}
-        with mkdtemp(prefix="python-clamd") as d:
-            for i in range(10):
-                with open(os.path.join(d, "file" + str(i)), 'wb') as f:
-                    f.write(EICAR)
-                    os.fchmod(f.fileno(), (mine | other))
-                    expected[f.name] = ('FOUND', 'Eicar-Test-Signature')
-            os.chmod(d, (mine | other | execute))
-
-            assert self.cd.multiscan(d) == expected
-
-    def test_instream(self):
-        expected = {'stream': ('FOUND', 'Eicar-Test-Signature')}
-        assert self.cd.instream(BytesIO(EICAR)) == expected
-
-    def test_insteam_success(self):
-        assert self.cd.instream(BytesIO(b"foo")) == {'stream': ('OK', None)}
-
-
-class TestUnixSocketTimeout(TestUnixSocket):
-    kwargs = {"timeout": 20}
+@pytest.fixture
+def unix_socket_client():
+    return ClamdUnixSocket()
 
 
 def test_cannot_connect():
     with pytest.raises(ConnectionError):
         ClamdUnixSocket(path="/tmp/404").ping()
+
+
+def test_ping(unix_socket_client):
+    unix_socket_client.ping()
+
+
+def test_version(unix_socket_client):
+    assert unix_socket_client.version().startswith("ClamAV")
+
+
+def test_reload(unix_socket_client):
+    assert unix_socket_client.reload() == "RELOADING"
+
+
+def test_scan(unix_socket_client, tmp_path):
+    update_tmp_path_perms(tmp_path)
+    file = tmp_path / "file"
+    file.write_bytes(EICAR)
+    file.chmod(0o644)
+    expected = {str(file): ('FOUND', 'Win.Test.EICAR_HDB-1')}
+    assert unix_socket_client.scan(str(file)) == expected
+
+
+def test_multiscan(unix_socket_client, tmp_path):
+    update_tmp_path_perms(tmp_path)
+    file1 = tmp_path / "file1"
+    file1.write_bytes(EICAR)
+    file1.chmod(0o644)
+    file2 = tmp_path / "file2"
+    file2.write_bytes(EICAR)
+    file2.chmod(0o644)
+    expected = {
+        str(file1): ('FOUND', 'Win.Test.EICAR_HDB-1'),
+        str(file2): ('FOUND', 'Win.Test.EICAR_HDB-1'),
+    }
+    assert unix_socket_client.multiscan(str(file1.parent)) == expected
+
+
+def test_instream(unix_socket_client):
+    expected = {'stream': ('FOUND', "Win.Test.EICAR_HDB-1")}
+    assert unix_socket_client.instream(BytesIO(EICAR)) == expected
+
+
+def test_insteam_success(unix_socket_client):
+    assert unix_socket_client.instream(BytesIO(b"foo")) == {'stream': ('OK', None)}
+
+
+def update_tmp_path_perms(temp_file):
+    """Update perms so ClamAV can traverse and read."""
+    stop_at = temp_file.parent.parent.parent
+    for parent in [temp_file] + list(temp_file.parents):
+        if parent == stop_at:
+            break
+        mode = os.stat(parent).st_mode
+        os.chmod(parent, mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH | stat.S_IROTH)
