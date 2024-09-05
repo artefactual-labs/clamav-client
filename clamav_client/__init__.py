@@ -1,14 +1,12 @@
-try:
-    __version__ = __import__('pkg_resources').get_distribution('clamd').version
-except:
-    __version__ = ''
-
+import importlib.metadata
 import socket
 import sys
 import struct
 import contextlib
 import re
 import base64
+
+__version__ = importlib.metadata.version('clamav_client')
 
 scan_response = re.compile(r"^(?P<path>.*): ((?P<virus>.+) )?(?P<status>(FOUND|OK|ERROR))$")
 EICAR = base64.b64decode(
