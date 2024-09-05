@@ -21,7 +21,7 @@ setup(
     package_dir={'': 'src'},
     packages=find_packages('src', exclude="tests"),
     classifiers = [
-        "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
+        "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
     ],
     zip_safe=True,
     include_package_data=False,

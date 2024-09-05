@@ -3,6 +3,7 @@ name = "clamav-client"
 version = "0.1.0"
 description = "Python client library for the ClamAV antivirus."
 readme = "README.md"
+license = {file = "LICENSE"}
 requires-python = ">=3.9"
 dependencies = []
 
