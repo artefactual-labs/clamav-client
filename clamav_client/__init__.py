@@ -231,9 +231,8 @@ class ClamdNetworkSocket(object):
         try:
             with contextlib.closing(self.clamd_socket.makefile('rb')) as f:
                 return f.readline().decode('utf-8').strip()
-        except (socket.error, socket.timeout):
-            e = sys.exc_info()[1]
-            raise ConnectionError("Error while reading from socket: {0}".format(e.args))
+        except (socket.error, socket.timeout) as err:
+            raise ConnectionError("Error while reading from socket: {0}".format(err.args))
 
     def _recv_response_multiline(self):
         """
@@ -242,9 +241,8 @@ class ClamdNetworkSocket(object):
         try:
             with contextlib.closing(self.clamd_socket.makefile('rb')) as f:
                 return f.read().decode('utf-8')
-        except (socket.error, socket.timeout):
-            e = sys.exc_info()[1]
-            raise ConnectionError("Error while reading from socket: {0}".format(e.args))
+        except (socket.error, socket.timeout) as err:
+            raise ConnectionError("Error while reading from socket: {0}".format(err.args))
 
     def _close_socket(self):
         """
@@ -257,9 +255,9 @@ class ClamdNetworkSocket(object):
         """
         parses responses for SCAN, CONTSCAN, MULTISCAN and STREAM commands.
         """
-        try:
-            return scan_response.match(msg).group("path", "virus", "status")
-        except AttributeError:
+        if match := scan_response.match(msg):
+            return match.group("path", "virus", "status")
+        else:
             raise ResponseError(msg.rsplit("ERROR", 1)[0])
 
 
