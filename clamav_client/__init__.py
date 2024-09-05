@@ -1,14 +1,7 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 try:
     __version__ = __import__('pkg_resources').get_distribution('clamd').version
 except:
     __version__ = ''
-
-# $Source$
-
 
 import socket
 import sys

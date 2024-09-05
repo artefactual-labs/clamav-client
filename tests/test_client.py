@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-import clamd
 from io import BytesIO
 from contextlib import contextmanager
 import tempfile
@@ -10,6 +6,11 @@ import os
 import stat
 
 import pytest
+
+from clamav_client import ClamdUnixSocket
+from clamav_client import EICAR
+from clamav_client import ConnectionError
+
 
 mine = (stat.S_IREAD | stat.S_IWRITE)
 other = stat.S_IROTH
@@ -29,7 +30,7 @@ class TestUnixSocket(object):
     kwargs = {}
 
     def setup(self):
-        self.cd = clamd.ClamdUnixSocket(**self.kwargs)
+        self.cd = ClamdUnixSocket(**self.kwargs)
 
     def test_ping(self):
         assert self.cd.ping()
@@ -42,7 +43,7 @@ class TestUnixSocket(object):
 
     def test_scan(self):
         with tempfile.NamedTemporaryFile('wb', prefix="python-clamd") as f:
-            f.write(clamd.EICAR)
+            f.write(EICAR)
             f.flush()
             os.fchmod(f.fileno(), (mine | other))
             expected = {f.name: ('FOUND', 'Eicar-Test-Signature')}
@@ -51,7 +52,7 @@ class TestUnixSocket(object):
 
     def test_unicode_scan(self):
         with tempfile.NamedTemporaryFile('wb', prefix=u"python-clamdλ") as f:
-            f.write(clamd.EICAR)
+            f.write(EICAR)
             f.flush()
             os.fchmod(f.fileno(), (mine | other))
             expected = {f.name: ('FOUND', 'Eicar-Test-Signature')}
@@ -63,7 +64,7 @@ class TestUnixSocket(object):
         with mkdtemp(prefix="python-clamd") as d:
             for i in range(10):
                 with open(os.path.join(d, "file" + str(i)), 'wb') as f:
-                    f.write(clamd.EICAR)
+                    f.write(EICAR)
                     os.fchmod(f.fileno(), (mine | other))
                     expected[f.name] = ('FOUND', 'Eicar-Test-Signature')
             os.chmod(d, (mine | other | execute))
@@ -72,7 +73,7 @@ class TestUnixSocket(object):
 
     def test_instream(self):
         expected = {'stream': ('FOUND', 'Eicar-Test-Signature')}
-        assert self.cd.instream(BytesIO(clamd.EICAR)) == expected
+        assert self.cd.instream(BytesIO(EICAR)) == expected
 
     def test_insteam_success(self):
         assert self.cd.instream(BytesIO(b"foo")) == {'stream': ('OK', None)}
@@ -83,5 +84,5 @@ class TestUnixSocketTimeout(TestUnixSocket):
 
 
 def test_cannot_connect():
-    with pytest.raises(clamd.ConnectionError):
-        clamd.ClamdUnixSocket(path="/tmp/404").ping()
+    with pytest.raises(ConnectionError):
+        ClamdUnixSocket(path="/tmp/404").ping()
