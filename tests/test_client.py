@@ -9,9 +9,15 @@ from clamav_client import EICAR
 from clamav_client import ConnectionError
 
 
+EICAR_NAME = "Win.Test.EICAR_HDB-1"
+if "CI" in os.environ:
+    EICAR_NAME = "Eicar-Signature"
+
+
 @pytest.fixture
 def unix_socket_client():
-    return ClamdUnixSocket()
+    path = os.getenv("CLAMAV_SOCKET", "/var/run/clamav/clamd.ctl")
+    return ClamdUnixSocket(path=path)
 
 
 def test_cannot_connect():
@@ -36,7 +42,7 @@ def test_scan(unix_socket_client, tmp_path):
     file = tmp_path / "file"
     file.write_bytes(EICAR)
     file.chmod(0o644)
-    expected = {str(file): ("FOUND", "Win.Test.EICAR_HDB-1")}
+    expected = {str(file): ("FOUND", EICAR_NAME)}
     assert unix_socket_client.scan(str(file)) == expected
 
 
@@ -49,14 +55,14 @@ def test_multiscan(unix_socket_client, tmp_path):
     file2.write_bytes(EICAR)
     file2.chmod(0o644)
     expected = {
-        str(file1): ("FOUND", "Win.Test.EICAR_HDB-1"),
-        str(file2): ("FOUND", "Win.Test.EICAR_HDB-1"),
+        str(file1): ("FOUND", EICAR_NAME),
+        str(file2): ("FOUND", EICAR_NAME),
     }
     assert unix_socket_client.multiscan(str(file1.parent)) == expected
 
 
 def test_instream(unix_socket_client):
-    expected = {"stream": ("FOUND", "Win.Test.EICAR_HDB-1")}
+    expected = {"stream": ("FOUND", EICAR_NAME)}
     assert unix_socket_client.instream(BytesIO(EICAR)) == expected
 
 

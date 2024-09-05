@@ -1,0 +1,34 @@
+---
+name: "Test"
+on:
+  pull_request:
+  push:
+    branches:
+      - "main"
+env:
+  CLAMAV_SOCKET: /tmp/clamd.socket
+jobs:
+  test:
+    name: "Test Python ${{ matrix.python-version }}"
+    runs-on: "ubuntu-22.04"
+    steps:
+      - name: "Check out repository"
+        uses: "actions/checkout@v4"
+      - name: Start ClamAV daemon clamd
+        uses: toblux/start-clamd-github-action@bae519cc165de29b89cbb9c4528f61c34b1c848b # v0.2.1
+        with:
+          unix_socket: ${{ env.CLAMAV_SOCKET }}
+          tcp_port: 3310
+          stream_max_length: 1M
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v1
+        with:
+          enable-cache: true
+      - name: Run tests
+        run: |
+          versions=("3.8" "3.9" "3.10" "3.11" "3.12")
+          for version in "${versions[@]}"; do
+            uv run --frozen --python "$version" -- pytest
+            uv run --frozen --python "$version" -- ruff check
+            uv run --frozen --python "$version" -- ruff format --check
+          done
