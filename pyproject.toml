@@ -1,6 +1,6 @@
 [project]
 name = "clamav-client"
-version = "0.1.0"
+version = "0.2.0"
 description = "Python client library for the ClamAV antivirus."
 readme = "README.md"
 license = {file = "LICENSE"}
