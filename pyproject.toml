@@ -13,6 +13,10 @@ build-backend = "hatchling.build"
 
 [tool.uv]
 dev-dependencies = [
+    "mypy>=1.11.2",
     "pytest>=8.3.2",
     "ruff>=0.6.3",
 ]
+
+[tool.mypy]
+strict = true
