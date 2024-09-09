@@ -1,6 +1,6 @@
 [project]
 name = "clamav-client"
-version = "0.2.0"
+version = "0.3.0"
 description = "Python client library for the ClamAV antivirus."
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -19,6 +19,7 @@ dev-dependencies = [
 ]
 
 [tool.mypy]
+files = ["clamav_client", "tests"]
 strict = true
 
 [tool.ruff.lint]

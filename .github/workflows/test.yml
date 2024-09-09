@@ -25,10 +25,4 @@ jobs:
         with:
           enable-cache: true
       - name: Run tests
-        run: |
-          versions=("3.8" "3.9" "3.10" "3.11" "3.12")
-          for version in "${versions[@]}"; do
-            uv run --frozen --python "$version" -- pytest
-            uv run --frozen --python "$version" -- ruff check
-            uv run --frozen --python "$version" -- ruff format --check
-          done
+        run: ./test.sh
