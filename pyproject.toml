@@ -1,6 +1,6 @@
 [project]
 name = "clamav-client"
-version = "0.3.0"
+dynamic = ["version"]
 description = "Python client library for the ClamAV antivirus."
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -8,8 +8,11 @@ requires-python = ">=3.8"
 dependencies = []
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
 
 [tool.uv]
 dev-dependencies = [
