@@ -21,8 +21,9 @@ jobs:
           tcp_port: 3310
           stream_max_length: 1M
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v1
+        uses: astral-sh/setup-uv@v2
         with:
           enable-cache: true
+          version: latest
       - name: Run tests
         run: ./test.sh

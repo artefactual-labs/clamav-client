@@ -11,10 +11,10 @@ jobs:
       - name: Check out repository
         uses: "actions/checkout@v4"
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v1
+        uses: astral-sh/setup-uv@v2
         with:
           enable-cache: true
-          version: "0.4.5"
+          version: latest
       - name: Build package
         run: uv build
       - name: "Save distribution directory"
