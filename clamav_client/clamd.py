@@ -1,11 +1,15 @@
 """A client for the ClamAV daemon (clamd), supporting both TCP and Unix socket
 connections."""
 
-import socket
-import struct
 import contextlib
 import re
-from typing import Any, BinaryIO, Dict, Optional, Tuple
+import socket
+import struct
+from typing import Any
+from typing import BinaryIO
+from typing import Dict
+from typing import Optional
+from typing import Tuple
 
 scan_response = re.compile(
     r"^(?P<path>.*): ((?P<virus>.+) )?(?P<status>(FOUND|OK|ERROR))$"
@@ -29,7 +33,7 @@ class BufferTooLongError(ResponseError):
     """Class for errors with clamd using INSTREAM with a buffer lenght > StreamMaxLength in /etc/clamav/clamd.conf"""
 
 
-class ConnectionError(ClamdError):
+class CommunicationError(ClamdError):
     """Class for errors communication with clamd"""
 
 
@@ -61,7 +65,7 @@ class ClamdNetworkSocket(object):
             self.clamd_socket.connect((self.host, self.port))
             self.clamd_socket.settimeout(self.timeout)
         except socket.error as err:
-            raise ConnectionError(self._error_message(err))
+            raise CommunicationError(self._error_message(err)) from err
 
     def _error_message(self, exception: BaseException) -> str:
         # args for socket.error can either be (errno, "message")
@@ -227,9 +231,9 @@ class ClamdNetworkSocket(object):
             with contextlib.closing(self.clamd_socket.makefile("rb")) as f:
                 return f.readline().decode("utf-8").strip()
         except (socket.error, socket.timeout) as err:
-            raise ConnectionError(
+            raise CommunicationError(
                 "Error while reading from socket: {0}".format(err.args)
-            )
+            ) from err
 
     def _recv_response_multiline(self) -> str:
         """
@@ -239,9 +243,9 @@ class ClamdNetworkSocket(object):
             with contextlib.closing(self.clamd_socket.makefile("rb")) as f:
                 return f.read().decode("utf-8")
         except (socket.error, socket.timeout) as err:
-            raise ConnectionError(
+            raise CommunicationError(
                 "Error while reading from socket: {0}".format(err.args)
-            )
+            ) from err
 
     def _close_socket(self) -> None:
         """
@@ -286,7 +290,7 @@ class ClamdUnixSocket(ClamdNetworkSocket):
             self.clamd_socket.connect(self.unix_socket)
             self.clamd_socket.settimeout(self.timeout)
         except socket.error as err:
-            raise ConnectionError(self._error_message(err))
+            raise CommunicationError(self._error_message(err)) from err
 
     def _error_message(self, exception: BaseException) -> str:
         # args for socket.error can either be (errno, "message")

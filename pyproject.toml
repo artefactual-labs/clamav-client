@@ -20,3 +20,9 @@ dev-dependencies = [
 
 [tool.mypy]
 strict = true
+
+[tool.ruff.lint]
+extend-select = ["A", "B", "I", "Q"]
+
+[tool.ruff.lint.isort]
+force-single-line = true

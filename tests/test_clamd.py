@@ -1,14 +1,13 @@
-from base64 import b64decode
-from io import BytesIO
 import os
 import pathlib
 import stat
+from base64 import b64decode
+from io import BytesIO
 
 import pytest
 
 from clamav_client.clamd import ClamdUnixSocket
-from clamav_client.clamd import ConnectionError
-
+from clamav_client.clamd import CommunicationError
 
 EICAR = b64decode(
     b"WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5E"
@@ -28,7 +27,7 @@ def unix_socket_client() -> ClamdUnixSocket:
 
 
 def test_cannot_connect() -> None:
-    with pytest.raises(ConnectionError):
+    with pytest.raises(CommunicationError):
         ClamdUnixSocket(path="/tmp/404").ping()
 
 
