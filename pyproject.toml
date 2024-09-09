@@ -3,7 +3,7 @@ name = "clamav-client"
 dynamic = ["version"]
 description = "Python client library for the ClamAV antivirus."
 readme = "README.md"
-license = {file = "LICENSE"}
+license = { text = "GPL-2.0" }
 requires-python = ">=3.8"
 dependencies = []
 
