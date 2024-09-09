@@ -5,8 +5,8 @@ import stat
 
 import pytest
 
-from clamav_client import ClamdUnixSocket
-from clamav_client import ConnectionError
+from clamav_client.clamd import ClamdUnixSocket
+from clamav_client.clamd import ConnectionError
 
 
 EICAR = b64decode(
