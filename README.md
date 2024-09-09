@@ -4,7 +4,8 @@
 on  Windows, Linux, MacOSX and other platforms. It requires a running instance
 of  the `clamd` daemon.
 
-This is a fork of [clamd] ([5c5e33b2]) created by Thomas Grainger.
+This is a fork of [clamd] ([5c5e33b2]) created by Thomas Grainger. It introduces
+type hints and tests exclusively against supported Python versions.
 
 
 [clamd]: https://github.com/graingert/python-clamd
