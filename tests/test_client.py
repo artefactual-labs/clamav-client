@@ -1,3 +1,4 @@
+from base64 import b64decode
 from io import BytesIO
 import os
 import stat
@@ -5,8 +6,13 @@ import stat
 import pytest
 
 from clamav_client import ClamdUnixSocket
-from clamav_client import EICAR
 from clamav_client import ConnectionError
+
+
+EICAR = b64decode(
+    b"WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5E"
+    b"QVJELUFOVElWSVJVUy1URVNU\nLUZJTEUhJEgrSCo=\n"
+)
 
 
 EICAR_NAME = "Win.Test.EICAR_HDB-1"
