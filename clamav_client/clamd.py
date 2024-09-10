@@ -1,5 +1,9 @@
 """A client for the ClamAV daemon (clamd), supporting both TCP and Unix socket
-connections."""
+connections.
+
+This module stays as close as possible to its original counterpart, the clamd
+project on which this code is based, to maintain backward compatibility.
+"""
 
 import contextlib
 import re
