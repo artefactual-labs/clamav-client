@@ -6,7 +6,8 @@ on:
     branches:
       - "main"
 env:
-  CLAMAV_SOCKET: /tmp/clamd.socket
+  CLAMD_UNIX_SOCKET: "/tmp/clamd.socket"
+  CLAMD_TCP_PORT: "3310"
 jobs:
   test:
     name: "Test Python ${{ matrix.python-version }}"
@@ -17,8 +18,8 @@ jobs:
       - name: Start ClamAV daemon clamd
         uses: toblux/start-clamd-github-action@bae519cc165de29b89cbb9c4528f61c34b1c848b # v0.2.1
         with:
-          unix_socket: ${{ env.CLAMAV_SOCKET }}
-          tcp_port: 3310
+          unix_socket: ${{ env.CLAMD_UNIX_SOCKET }}
+          tcp_port: ${{ env.CLAMD_TCP_PORT }}
           stream_max_length: 1M
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v2
