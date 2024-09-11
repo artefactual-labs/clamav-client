@@ -21,7 +21,7 @@ print_status() {
 
 for version in "${versions[@]}"; do
   print_status "Running \`pytest\` using Python $version..."
-  uv run --frozen --python "$version" -- pytest
+  uv run --frozen --python "$version" -- pytest --cov clamav_client --cov-report xml:coverage.xml --cov-append
 done
 
 latest="${versions[${#versions[@]}-1]}"
