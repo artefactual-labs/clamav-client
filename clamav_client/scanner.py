@@ -158,7 +158,7 @@ class ClamscanScanner(Scanner):
         max_file_size = "--max-filesize=%dM" % self.max_file_size
         max_scan_size = "--max-scansize=%dM" % self.max_scan_size
         try:
-            self._call(max_file_size, max_scan_size, filename)
+            self._call(max_file_size, max_scan_size, "--no-summary", filename)
         except CalledProcessError as err:
             if err.returncode == 1:
                 result.update("FOUND", self._parse_found(err.output))
