@@ -116,6 +116,23 @@ def test_clamd_scanner_scan_error(
     )
 
 
+def test_clamd_scanner_scan_exception(eicar_file: Path) -> None:
+    scanner = get_scanner(
+        {
+            "backend": "clamd",
+            "address": "127.0.0.1:65000",  # clamd isn't listening on this addr.
+        }
+    )
+
+    result = scanner.scan(str(eicar_file))
+
+    assert result == ScanResult(
+        filename=str(eicar_file),
+        state="ERROR",
+        details="Error 111 connecting 127.0.0.1:65000. Connection refused.",
+    )
+
+
 def test_clamd_scanner_instream_over_unix(
     clamd_scanner_with_streaming: Scanner, eicar_file: Path, eicar_name: str
 ) -> None:
