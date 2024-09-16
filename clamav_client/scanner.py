@@ -69,13 +69,14 @@ class Scanner(abc.ABC):
 
     @abc.abstractmethod
     def scan(self, filename: str) -> ScanResult:
-        pass
+        """Scan a file."""
 
     @abc.abstractmethod
     def _get_version(self) -> str:
-        pass
+        """Return the program version details."""
 
     def info(self) -> ScannerInfo:
+        """Fetch information of the current backend."""
         try:
             return self._info
         except AttributeError:
