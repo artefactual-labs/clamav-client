@@ -26,7 +26,7 @@ if [[ "${1:-}" == "--latest" ]]; then
 fi
 for version in "${versions[@]}"; do
   print_status "Running \`pytest\` using Python $version..."
-  uv run --frozen --python "$version" -- pytest --cov clamav_client --cov-report xml:coverage.xml --cov-report html:/tmp/coverage --cov-append
+  uv run --frozen --python "$version" -- pytest --cov clamav_client --cov-report xml:coverage.xml --cov-report html --cov-append
 done
 
 print_status "Running \`ruff check\` using Python $latest..."
