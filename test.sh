@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+print_status() {
+  echo -en "\n➡️  $1\n\n"
+}
+
 if ! command -v uv > /dev/null; then
   echo "Error: 'uv' is not installed or not in the PATH."
   exit 1
@@ -15,16 +19,15 @@ versions=(
   "3.12"
 )
 
-print_status() {
-  echo -en "\n➡️  $1\n\n"
-}
+latest="${versions[${#versions[@]}-1]}"
 
+if [[ "${1:-}" == "--latest" ]]; then
+  versions=("3.12")
+fi
 for version in "${versions[@]}"; do
   print_status "Running \`pytest\` using Python $version..."
-  uv run --frozen --python "$version" -- pytest --cov clamav_client --cov-report xml:coverage.xml --cov-append
+  uv run --frozen --python "$version" -- pytest --cov clamav_client --cov-report xml:coverage.xml --cov-report html:/tmp/coverage --cov-append
 done
-
-latest="${versions[${#versions[@]}-1]}"
 
 print_status "Running \`ruff check\` using Python $latest..."
 uv run --frozen --python "$latest" -- ruff check
