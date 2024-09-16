@@ -17,11 +17,18 @@ from clamav_client.scanner import ClamscanScannerConfig
 from clamav_client.scanner import Scanner
 from clamav_client.scanner import get_scanner
 
+CI = True if "CI" in environ or "GITHUB_REF" in environ else False
+
 # TODO: figure out this discrepancy - likely because we're missing recent sigs
 # in the CI job.
 EICAR_NAME = "Win.Test.EICAR_HDB-1"
-if "CI" in environ:
+if CI:
     EICAR_NAME = "Eicar-Signature"
+
+
+@pytest.fixture
+def ci() -> bool:
+    return CI
 
 
 @pytest.fixture
@@ -55,13 +62,6 @@ def clean_file(
     perms_updater(tmp_path)
     f = tmp_path / "file"
     f.write_bytes(b"hello world")
-    return f
-
-
-@pytest.fixture
-def file_without_perms_adjusted(tmp_path: Path) -> Path:
-    f = tmp_path / "file"
-    f.write_bytes(b"")
     return f
 
 
