@@ -116,10 +116,22 @@ def test_clamd_scanner_scan_error(
     )
 
 
-def test_clamd_scanner_instream(
+def test_clamd_scanner_instream_over_unix(
     clamd_scanner_with_streaming: Scanner, eicar_file: Path, eicar_name: str
 ) -> None:
     result = clamd_scanner_with_streaming.scan(str(eicar_file))
+
+    assert result == ScanResult(
+        filename=str(eicar_file),
+        state="FOUND",
+        details=eicar_name,
+    )
+
+
+def test_clamd_scanner_instream_over_tcp(
+    clamd_scanner_over_tcp: Scanner, eicar_file: Path, eicar_name: str
+) -> None:
+    result = clamd_scanner_over_tcp.scan(str(eicar_file))
 
     assert result == ScanResult(
         filename=str(eicar_file),

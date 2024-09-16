@@ -128,3 +128,13 @@ def clamd_scanner_with_streaming() -> Scanner:
         "stream": True,
     }
     return get_scanner(config)
+
+
+@pytest.fixture
+def clamd_scanner_over_tcp() -> Scanner:
+    config: ClamdScannerConfig = {
+        "backend": "clamd",
+        "address": f"127.0.0.1:{getenv("CLAMD_TCP_PORT", "3310")}",
+        "stream": True,
+    }
+    return get_scanner(config)
