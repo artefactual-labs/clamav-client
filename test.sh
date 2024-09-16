@@ -21,12 +21,18 @@ versions=(
 
 latest="${versions[${#versions[@]}-1]}"
 
-if [[ "${1:-}" == "--latest" ]]; then
+markers=""
+if [[ " $@ " =~ " --fast " ]]; then
+  markers="not slow"
+fi
+
+if [[ " $@ " =~ " --latest " ]]; then
   versions=("3.12")
 fi
+
 for version in "${versions[@]}"; do
   print_status "Running \`pytest\` using Python $version..."
-  uv run --frozen --python "$version" -- pytest --cov clamav_client --cov-report xml:coverage.xml --cov-report html --cov-append
+  uv run --frozen --python "$version" -- pytest -m "$markers" --cov clamav_client --cov-report xml:coverage.xml --cov-report html --cov-append
 done
 
 print_status "Running \`ruff check\` using Python $latest..."

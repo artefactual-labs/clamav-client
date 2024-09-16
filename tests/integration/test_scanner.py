@@ -19,6 +19,7 @@ def test_get_scanner_raises_value_error() -> None:
         get_scanner({"backend": "unknown"})  # type: ignore[misc,arg-type]
 
 
+@pytest.mark.slow
 def test_clamscan_scanner_info(clamscan_scanner: Scanner) -> None:
     info = clamscan_scanner.info()
 
@@ -30,6 +31,7 @@ def test_clamscan_scanner_info(clamscan_scanner: Scanner) -> None:
     )
 
 
+@pytest.mark.slow
 def test_clamscan_scanner_scan_ok(clamscan_scanner: Scanner, clean_file: Path) -> None:
     result = clamscan_scanner.scan(str(clean_file))
 
@@ -40,6 +42,7 @@ def test_clamscan_scanner_scan_ok(clamscan_scanner: Scanner, clean_file: Path) -
     )
 
 
+@pytest.mark.slow
 def test_clamscan_scanner_scan_found(
     clamscan_scanner: Scanner,
     eicar_file: Path,
@@ -54,6 +57,7 @@ def test_clamscan_scanner_scan_found(
     )
 
 
+@pytest.mark.slow
 def test_clamscan_scanner_scan_error(clamscan_scanner: Scanner) -> None:
     result = clamscan_scanner.scan("/tmp/notfound")
 
