@@ -1,12 +1,21 @@
 import os
 import pathlib
-import stat
 from io import BytesIO
+from typing import Callable
 
 import pytest
 
+from clamav_client.clamd import BufferTooLongError
 from clamav_client.clamd import ClamdUnixSocket
 from clamav_client.clamd import CommunicationError
+
+
+def test_address_using_unix_scheme() -> None:
+    path = os.getenv("CLAMD_UNIX_SOCKET", "/var/run/clamav/clamd.ctl")
+    if not path.startswith("unix://"):
+        path = f"unix://{path}"
+    client = ClamdUnixSocket(path=path)
+    client.ping()
 
 
 def test_cannot_connect() -> None:
@@ -26,13 +35,18 @@ def test_reload(clamd_unix_client: ClamdUnixSocket) -> None:
     assert clamd_unix_client.reload() == "RELOADING"
 
 
+def test_stats(clamd_unix_client: ClamdUnixSocket) -> None:
+    assert "END" in clamd_unix_client.stats()
+
+
 def test_scan(
+    perms_updater: Callable[[pathlib.Path], None],
     clamd_unix_client: ClamdUnixSocket,
     tmp_path: pathlib.Path,
     eicar: bytes,
     eicar_name: str,
 ) -> None:
-    update_tmp_path_perms(tmp_path)
+    perms_updater(tmp_path)
     file = tmp_path / "file"
     file.write_bytes(eicar)
     file.chmod(0o644)
@@ -41,12 +55,13 @@ def test_scan(
 
 
 def test_multiscan(
+    perms_updater: Callable[[pathlib.Path], None],
     clamd_unix_client: ClamdUnixSocket,
     tmp_path: pathlib.Path,
     eicar: bytes,
     eicar_name: str,
 ) -> None:
-    update_tmp_path_perms(tmp_path)
+    perms_updater(tmp_path)
     file1 = tmp_path / "file1"
     file1.write_bytes(eicar)
     file1.chmod(0o644)
@@ -69,17 +84,14 @@ def test_instream_found(
     assert clamd_unix_client.instream(BytesIO(eicar)) == expected
 
 
-def test_insteam_ok(clamd_unix_client: ClamdUnixSocket) -> None:
+def test_instream_ok(clamd_unix_client: ClamdUnixSocket) -> None:
     assert clamd_unix_client.instream(BytesIO(b"foo")) == {"stream": ("OK", None)}
 
 
-def update_tmp_path_perms(temp_file: pathlib.Path) -> None:
-    """Update perms so ClamAV can traverse and read."""
-    stop_at = temp_file.parent.parent.parent
-    for parent in [temp_file] + list(temp_file.parents):
-        if parent == stop_at:
-            break
-        mode = os.stat(parent).st_mode
-        os.chmod(
-            parent, mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH | stat.S_IROTH
-        )
+@pytest.mark.xfail
+def test_instream_exceeded(
+    clamd_unix_client: ClamdUnixSocket, really_big_file: BytesIO
+) -> None:
+    """TODO: this is raising ConnectionResetError instead of BufferTooLongError."""
+    with pytest.raises(BufferTooLongError):
+        clamd_unix_client.instream(really_big_file)

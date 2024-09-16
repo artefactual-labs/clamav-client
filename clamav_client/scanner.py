@@ -3,6 +3,7 @@
 import abc
 import re
 from dataclasses import dataclass
+from subprocess import STDOUT
 from subprocess import CalledProcessError
 from subprocess import check_output
 from typing import Any
@@ -15,6 +16,7 @@ from urllib.parse import urlparse
 
 from clamav_client.clamd import ClamdNetworkSocket
 from clamav_client.clamd import ClamdUnixSocket
+from clamav_client.clamd import ScanResults
 
 ProgramName = Literal[
     "ClamAV (clamd)",
@@ -53,9 +55,12 @@ class ScanResult:
     state: ScanResultState
     details: ScanResultDetails
 
-    def update(self, state: ScanResultState, details: ScanResultDetails) -> None:
+    def update(
+        self, state: ScanResultState, details: ScanResultDetails
+    ) -> "ScanResult":
         self.state = state
         self.details = details
+        return self
 
 
 class Scanner(abc.ABC):
@@ -119,19 +124,27 @@ class ClamdScanner(Scanner):
 
     def scan(self, filename: str) -> ScanResult:
         result = ScanResult(filename=filename, state=None, details=None)
+        method_name = "_pass_by_stream" if self.stream else "_pass_by_reference"
+        report_key = "stream" if self.stream else filename
         try:
-            report = self.client.scan(filename)
+            method = getattr(self, method_name)
+            report = method(filename)
         except Exception as err:
-            result.update(state="ERROR", details=str(err))
-        file_report = report.get(filename)
+            return result.update(state="ERROR", details=str(err))
+        file_report = report.get(report_key)
         if file_report is None:
             return result
         state, details = file_report
-        result.update(state, details)  # type: ignore[arg-type]
-        return result
+        return result.update(state, details)
 
     def _get_version(self) -> str:
         return self.client.version()
+
+    def _pass_by_reference(self, filename: str) -> ScanResults:
+        return self.client.scan(filename)
+
+    def _pass_by_stream(self, filename: str) -> ScanResults:
+        return self.client.instream(open(filename, "rb"))
 
 
 class ClamscanScannerConfig(TypedDict, total=False):
@@ -151,7 +164,7 @@ class ClamscanScanner(Scanner):
         self.max_scan_size = config.get("max_scan_size", float(2000))
 
     def _call(self, *args: str) -> bytes:
-        return check_output((self._command,) + args)
+        return check_output((self._command,) + args, stderr=STDOUT)
 
     def scan(self, filename: str) -> ScanResult:
         result = ScanResult(filename=filename, state=None, details=None)
@@ -163,7 +176,7 @@ class ClamscanScanner(Scanner):
             if err.returncode == 1:
                 result.update("FOUND", self._parse_found(err.output))
             else:
-                result.update("ERROR", self._parse_stderr(err.stderr))
+                result.update("ERROR", self._parse_error(err.output))
         else:
             result.update("OK", None)
         return result
@@ -171,16 +184,20 @@ class ClamscanScanner(Scanner):
     def _get_version(self) -> str:
         return self._call("-V").decode("utf-8")
 
-    def _parse_stderr(self, stderr: bytes) -> Optional[str]:
-        if stderr is None:
+    def _parse_error(self, output: Any) -> Optional[str]:
+        if output is None or not isinstance(output, bytes):
             return None
-        return stderr.decode("utf-8", errors="replace")
+        try:
+            decoded: str = output.decode("utf-8")
+            return decoded.split("\n")[0]
+        except Exception:
+            return None
 
     def _parse_found(self, output: Any) -> Optional[str]:
         if output is None or not isinstance(output, bytes):
             return None
         try:
-            stdout = output.decode("utf-8", errors="replace")
+            stdout = output.decode("utf-8")
             match = self.found_pattern.search(stdout)
             return match.group(1) if match else None
         except Exception:

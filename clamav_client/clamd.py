@@ -17,7 +17,7 @@ from typing import Tuple
 from typing import Union
 
 scan_response = re.compile(
-    r"^(?P<path>.*): ((?P<virus>.+) )?(?P<status>(FOUND|OK|ERROR))$"
+    r"^(?P<path>[^:]+): ((?P<virus>.+?) )?(?P<status>(FOUND|OK|ERROR))$"
 )
 
 
@@ -283,6 +283,9 @@ class ClamdUnixSocket(ClamdNetworkSocket):
         timeout (float or None) : socket timeout
         """
 
+        scheme = "unix://"
+        if path.startswith(scheme):
+            path = path[len(scheme) :]
         self.unix_socket = path
         self.timeout = timeout
 
