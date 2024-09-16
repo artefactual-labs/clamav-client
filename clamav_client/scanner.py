@@ -163,14 +163,18 @@ class ClamscanScanner(Scanner):
             if err.returncode == 1:
                 result.update("FOUND", self._parse_found(err.output))
             else:
-                stderr = err.stderr.decode("utf-8", errors="replace")
-                result.update("ERROR", stderr)
+                result.update("ERROR", self._parse_stderr(err.stderr))
         else:
             result.update("OK", None)
         return result
 
     def _get_version(self) -> str:
         return self._call("-V").decode("utf-8")
+
+    def _parse_stderr(self, stderr: bytes) -> Optional[str]:
+        if stderr is None:
+            return None
+        return stderr.decode("utf-8", errors="replace")
 
     def _parse_found(self, output: Any) -> Optional[str]:
         if output is None or not isinstance(output, bytes):
