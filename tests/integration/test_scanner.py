@@ -17,6 +17,8 @@ def test_get_scanner_provides_default() -> None:
 def test_get_scanner_raises_value_error() -> None:
     with pytest.raises(ValueError):
         get_scanner({"backend": "unknown"})  # type: ignore[misc,arg-type]
+    with pytest.raises(ValueError):
+        get_scanner({"backend": "clamd", "address": "invalid"})
 
 
 @pytest.mark.slow
