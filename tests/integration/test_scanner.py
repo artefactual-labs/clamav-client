@@ -139,8 +139,11 @@ def test_clamd_scanner_scan_exception(eicar_file: Path) -> None:
         filename=str(eicar_file),
         state="ERROR",
         details="Error 111 connecting 127.0.0.1:65000. Connection refused.",
-        err=CommunicationError("Error 111 connecting 127.0.0.1:65000. Connection refused."),
+        err=CommunicationError(
+            "Error 111 connecting 127.0.0.1:65000. Connection refused."
+        ),
     )
+    assert result.passed is False
 
 
 def test_clamd_scanner_instream_over_unix(

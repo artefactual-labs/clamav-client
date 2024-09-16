@@ -63,10 +63,10 @@ class ScanResult:
         if not isinstance(other, ScanResult):
             return NotImplemented
         return (
-            self.filename == other.filename and
-            self.state == other.state and
-            self.details == other.details and
-            str(self.err) == str(other.err)
+            self.filename == other.filename
+            and self.state == other.state
+            and self.details == other.details
+            and str(self.err) == str(other.err)
         )
 
     def update(
