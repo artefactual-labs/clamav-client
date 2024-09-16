@@ -7,6 +7,7 @@ from subprocess import STDOUT
 from subprocess import CalledProcessError
 from subprocess import check_output
 from typing import Any
+from typing import Dict
 from typing import Literal
 from typing import Optional
 from typing import TypedDict
@@ -64,24 +65,26 @@ class ScanResult:
 
 
 class Scanner(abc.ABC):
-    _info: ScannerInfo
+    _info: Dict[ProgramName, ScannerInfo]
     _program: ProgramName
 
     @abc.abstractmethod
     def scan(self, filename: str) -> ScanResult:
         """Scan a file."""
 
+    def info(self) -> ScannerInfo:
+        """Fetch information of the current backend."""
+        if not hasattr(self, "_info"):
+            self._info = {}
+        try:
+            return self._info[self._program]
+        except KeyError:
+            self._info[self._program] = self._parse_version(self._get_version())
+            return self._info[self._program]
+
     @abc.abstractmethod
     def _get_version(self) -> str:
         """Return the program version details."""
-
-    def info(self) -> ScannerInfo:
-        """Fetch information of the current backend."""
-        try:
-            return self._info
-        except AttributeError:
-            self._info = self._parse_version(self._get_version())
-            return self._info
 
     def _parse_version(self, version: str) -> ScannerInfo:
         parts = version.strip().split("/")

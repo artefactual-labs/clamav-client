@@ -70,6 +70,7 @@ def test_clamscan_scanner_scan_error(clamscan_scanner: Scanner) -> None:
 
 def test_clamd_scanner_info(clamd_scanner: Scanner) -> None:
     info = clamd_scanner.info()
+    info_2 = clamd_scanner.info()  # Activates caching code path.
 
     assert isinstance(clamd_scanner, ClamdScanner)
     assert info.name == "ClamAV (clamd)"
@@ -77,6 +78,8 @@ def test_clamd_scanner_info(clamd_scanner: Scanner) -> None:
     assert info.virus_definitions is not None and int(
         info.virus_definitions.split("/")[0]
     )
+
+    assert info == info_2
 
 
 def test_clamd_scanner_scan_ok(clamd_scanner: Scanner, clean_file: Path) -> None:
