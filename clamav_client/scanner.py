@@ -3,6 +3,7 @@
 import abc
 import re
 from dataclasses import dataclass
+from errno import EPIPE
 from subprocess import STDOUT
 from subprocess import CalledProcessError
 from subprocess import check_output
@@ -15,6 +16,7 @@ from typing import Union
 from typing import cast
 from urllib.parse import urlparse
 
+from clamav_client.clamd import BufferTooLongError
 from clamav_client.clamd import ClamdNetworkSocket
 from clamav_client.clamd import ClamdUnixSocket
 from clamav_client.clamd import ScanResults
@@ -55,13 +57,47 @@ class ScanResult:
     filename: str
     state: ScanResultState
     details: ScanResultDetails
+    err: Optional[Exception]
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, ScanResult):
+            return NotImplemented
+        return (
+            self.filename == other.filename and
+            self.state == other.state and
+            self.details == other.details and
+            str(self.err) == str(other.err)
+        )
 
     def update(
-        self, state: ScanResultState, details: ScanResultDetails
+        self,
+        state: ScanResultState,
+        details: ScanResultDetails,
+        err: Optional[Exception] = None,
     ) -> "ScanResult":
         self.state = state
         self.details = details
+        self.err = err
         return self
+
+    @property
+    def passed(self) -> Optional[bool]:
+        """Indicates whether the file passed the virus scan.
+
+        The ``passed`` property returns ``True`` if the scan completed
+        successfully and no virus was found (``state == "OK"``), ``False`` if
+        the scan failed due to a virus or another error, and ``None`` if the
+        scan was not performed, typically due to issues such as the stream
+        exceeding its maximum length or connection-related errors.
+        """
+        if self.err is None:
+            return self.state == "OK"
+        elif isinstance(self.err, (BufferTooLongError, ConnectionError)):
+            return None
+        elif isinstance(self.err, IOError) and self.err.errno == EPIPE:
+            return None
+        else:
+            return False
 
 
 class Scanner(abc.ABC):
@@ -127,14 +163,14 @@ class ClamdScanner(Scanner):
             raise ValueError(f"Invalid address format: {self.address}")
 
     def scan(self, filename: str) -> ScanResult:
-        result = ScanResult(filename=filename, state=None, details=None)
+        result = ScanResult(filename=filename, state=None, details=None, err=None)
         method_name = "_pass_by_stream" if self.stream else "_pass_by_reference"
         report_key = "stream" if self.stream else filename
         try:
             method = getattr(self, method_name)
             report = method(filename)
         except Exception as err:
-            return result.update(state="ERROR", details=str(err))
+            return result.update(state="ERROR", details=str(err), err=err)
         file_report = report.get(report_key)
         if file_report is None:
             return result
@@ -171,7 +207,7 @@ class ClamscanScanner(Scanner):
         return check_output((self._command,) + args, stderr=STDOUT)
 
     def scan(self, filename: str) -> ScanResult:
-        result = ScanResult(filename=filename, state=None, details=None)
+        result = ScanResult(filename=filename, state=None, details=None, err=None)
         max_file_size = "--max-filesize=%dM" % self.max_file_size
         max_scan_size = "--max-scansize=%dM" % self.max_scan_size
         try:

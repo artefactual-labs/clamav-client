@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from clamav_client import get_scanner
+from clamav_client.clamd import CommunicationError
 from clamav_client.scanner import ClamdScanner
 from clamav_client.scanner import ClamscanScanner
 from clamav_client.scanner import Scanner
@@ -41,6 +42,7 @@ def test_clamscan_scanner_scan_ok(clamscan_scanner: Scanner, clean_file: Path) -
         filename=str(clean_file),
         state="OK",
         details=None,
+        err=None,
     )
 
 
@@ -56,6 +58,7 @@ def test_clamscan_scanner_scan_found(
         filename=str(eicar_file),
         state="FOUND",
         details=eicar_name,
+        err=None,
     )
 
 
@@ -67,6 +70,7 @@ def test_clamscan_scanner_scan_error(clamscan_scanner: Scanner) -> None:
         filename="/tmp/notfound",
         state="ERROR",
         details="/tmp/notfound: No such file or directory",
+        err=None,
     )
 
 
@@ -91,6 +95,7 @@ def test_clamd_scanner_scan_ok(clamd_scanner: Scanner, clean_file: Path) -> None
         filename=str(clean_file),
         state="OK",
         details=None,
+        err=None,
     )
 
 
@@ -103,6 +108,7 @@ def test_clamd_scanner_scan_found(
         filename=str(eicar_file),
         state="FOUND",
         details=eicar_name,
+        err=None,
     )
 
 
@@ -115,6 +121,7 @@ def test_clamd_scanner_scan_error(
         filename=str(file_without_perms_adjusted),
         state="ERROR",
         details="File path check failure: Permission denied.",
+        err=None,
     )
 
 
@@ -132,6 +139,7 @@ def test_clamd_scanner_scan_exception(eicar_file: Path) -> None:
         filename=str(eicar_file),
         state="ERROR",
         details="Error 111 connecting 127.0.0.1:65000. Connection refused.",
+        err=CommunicationError("Error 111 connecting 127.0.0.1:65000. Connection refused."),
     )
 
 
@@ -144,6 +152,7 @@ def test_clamd_scanner_instream_over_unix(
         filename=str(eicar_file),
         state="FOUND",
         details=eicar_name,
+        err=None,
     )
 
 
@@ -156,4 +165,5 @@ def test_clamd_scanner_instream_over_tcp(
         filename=str(eicar_file),
         state="FOUND",
         details=eicar_name,
+        err=None,
     )
