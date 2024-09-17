@@ -42,7 +42,7 @@ class CommunicationError(ClamdError):
     """Class for errors communication with clamd"""
 
 
-class ClamdNetworkSocket(object):
+class ClamdNetworkSocket:
     """
     Class for using clamd with a network socket
     """
@@ -69,23 +69,16 @@ class ClamdNetworkSocket(object):
             self.clamd_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.clamd_socket.connect((self.host, self.port))
             self.clamd_socket.settimeout(self.timeout)
-        except socket.error as err:
+        except OSError as err:
             raise CommunicationError(self._error_message(err)) from err
 
     def _error_message(self, exception: BaseException) -> str:
         # args for socket.error can either be (errno, "message")
         # or just "message"
         if len(exception.args) == 1:
-            return "Error connecting to {host}:{port}. {msg}.".format(
-                host=self.host, port=self.port, msg=exception.args[0]
-            )
+            return f"Error connecting to {self.host}:{self.port}. {exception.args[0]}."
         else:
-            return "Error {erno} connecting {host}:{port}. {msg}.".format(
-                erno=exception.args[0],
-                host=self.host,
-                port=self.port,
-                msg=exception.args[1],
-            )
+            return f"Error {exception.args[0]} connecting {self.host}:{self.port}. {exception.args[1]}."
 
     def ping(self) -> str:
         return self._basic_command("PING")
@@ -225,7 +218,7 @@ class ClamdNetworkSocket(object):
         concat_args = ""
         if args:
             concat_args = " " + " ".join(args)
-        send = "n{cmd}{args}\n".format(cmd=cmd, args=concat_args).encode("utf-8")
+        send = f"n{cmd}{concat_args}\n".encode()
         self.clamd_socket.send(send)
 
     def _recv_response(self) -> str:
@@ -235,9 +228,9 @@ class ClamdNetworkSocket(object):
         try:
             with contextlib.closing(self.clamd_socket.makefile("rb")) as f:
                 return f.readline().decode("utf-8").strip()
-        except (socket.error, socket.timeout) as err:
+        except (OSError, socket.timeout) as err:
             raise CommunicationError(
-                "Error while reading from socket: {0}".format(err.args)
+                f"Error while reading from socket: {err.args}"
             ) from err
 
     def _recv_response_multiline(self) -> str:
@@ -247,9 +240,9 @@ class ClamdNetworkSocket(object):
         try:
             with contextlib.closing(self.clamd_socket.makefile("rb")) as f:
                 return f.read().decode("utf-8")
-        except (socket.error, socket.timeout) as err:
+        except (OSError, socket.timeout) as err:
             raise CommunicationError(
-                "Error while reading from socket: {0}".format(err.args)
+                f"Error while reading from socket: {err.args}"
             ) from err
 
     def _close_socket(self) -> None:
@@ -297,17 +290,13 @@ class ClamdUnixSocket(ClamdNetworkSocket):
             self.clamd_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             self.clamd_socket.connect(self.unix_socket)
             self.clamd_socket.settimeout(self.timeout)
-        except socket.error as err:
+        except OSError as err:
             raise CommunicationError(self._error_message(err)) from err
 
     def _error_message(self, exception: BaseException) -> str:
         # args for socket.error can either be (errno, "message")
         # or just "message"
         if len(exception.args) == 1:
-            return "Error connecting to {path}. {msg}.".format(
-                path=self.unix_socket, msg=exception.args[0]
-            )
+            return f"Error connecting to {self.unix_socket}. {exception.args[0]}."
         else:
-            return "Error {erno} connecting {path}. {msg}.".format(
-                erno=exception.args[0], path=self.unix_socket, msg=exception.args[1]
-            )
+            return f"Error {exception.args[0]} connecting {self.unix_socket}. {exception.args[1]}."
