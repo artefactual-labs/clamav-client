@@ -36,7 +36,7 @@ files = ["clamav_client", "tests"]
 strict = true
 
 [tool.ruff.lint]
-extend-select = ["A", "B", "I", "Q"]
+extend-select = ["A", "B", "I", "Q", "UP"]
 
 [tool.ruff.lint.isort]
 force-single-line = true
