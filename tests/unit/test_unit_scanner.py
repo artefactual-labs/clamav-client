@@ -1,3 +1,5 @@
+from errno import EPIPE
+
 from clamav_client.clamd import BufferTooLongError
 from clamav_client.clamd import CommunicationError
 from clamav_client.scanner import ScanResult
@@ -34,6 +36,12 @@ def test_scan_result_passed() -> None:
     assert (
         ScanResult(
             filename="", state=None, details=None, err=CommunicationError()
+        ).passed
+        is None
+    )
+    assert (
+        ScanResult(
+            filename="", state=None, details=None, err=OSError(EPIPE, "Broken pipe.")
         ).passed
         is None
     )
