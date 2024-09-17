@@ -11,5 +11,15 @@ of the `clamd` daemon.
 This is a fork of [clamd] ([5c5e33b2]) created by Thomas Grainger. It introduces
 type hints and tests exclusively against supported Python versions.
 
+## Basic usage
+
+The `clamav_client.clamd` module offers a client for the `clamd` daemon,
+supporting both TCP and Unix sockets.
+
+The `clamav_client.scanner` module provides a high-level file scanner that works
+with both `clamd` and `clamscan`. Use `clamav_client.get_scanner()` to configure
+it.
+
+
 [clamd]: https://github.com/graingert/python-clamd
 [5c5e33b2]: https://github.com/graingert/python-clamd/commit/5c5e33b2dfd0499470e15abeb83efb6531ef9ab7
