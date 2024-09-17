@@ -19,6 +19,7 @@ from urllib.parse import urlparse
 from clamav_client.clamd import BufferTooLongError
 from clamav_client.clamd import ClamdNetworkSocket
 from clamav_client.clamd import ClamdUnixSocket
+from clamav_client.clamd import CommunicationError
 from clamav_client.clamd import ScanResults
 
 ProgramName = Literal[
@@ -92,9 +93,9 @@ class ScanResult:
         """
         if self.err is None:
             return self.state == "OK"
-        elif isinstance(self.err, (BufferTooLongError, ConnectionError)):
+        elif isinstance(self.err, (BufferTooLongError, CommunicationError)):
             return None
-        elif isinstance(self.err, IOError) and self.err.errno == EPIPE:
+        elif isinstance(self.err, OSError) and self.err.errno == EPIPE:
             return None
         else:
             return False
