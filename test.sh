@@ -8,6 +8,8 @@ print_status() {
 
 if ! command -v uv > /dev/null; then
   echo "Error: 'uv' is not installed or not in the PATH."
+  echo "To install it, run:"
+  echo "  $ curl -LsSf https://astral.sh/uv/install.sh | sh"
   exit 1
 fi
 
