@@ -34,7 +34,14 @@ fi
 
 for version in "${versions[@]}"; do
   print_status "Running \`pytest\` using Python $version..."
-  uv run --frozen --python "$version" -- pytest -m "$markers" --cov clamav_client --cov-report xml:coverage.xml --cov-report html --cov-append
+  uv run --frozen --python "$version" -- \
+    pytest -m "$markers" \
+      --junitxml=junit.xml \
+      --override-ini=junit_family=legacy \
+      --cov \
+      --cov-append \
+      --cov-report xml:coverage.xml \
+      --cov-report html
 done
 
 print_status "Running \`ruff check\` using Python $latest..."
