@@ -1,13 +1,32 @@
 from errno import EPIPE
+from unittest import mock
 
 import pytest
 
 from clamav_client.clamd import BufferTooLongError
 from clamav_client.clamd import CommunicationError
+from clamav_client.scanner import ClamdScanner
 from clamav_client.scanner import ClamscanScanner
 from clamav_client.scanner import Scanner
 from clamav_client.scanner import ScannerInfo
 from clamav_client.scanner import ScanResult
+
+
+@mock.patch.object(
+    ClamdScanner,
+    "_pass_by_stream",
+    return_value={
+        "/tmp/file": ScanResult(
+            filename="/tmp/file", state=None, details=None, err=None
+        ),
+    },
+)
+def test_clamdscanner_missing_result_entry(mock: mock.Mock) -> None:
+    result = ClamdScanner({}).scan("/tmp/file")
+
+    assert result == ScanResult(
+        filename="/tmp/file", state=None, details=None, err=None
+    )
 
 
 def test_scan_result_eq() -> None:
