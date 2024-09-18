@@ -29,7 +29,7 @@ dev-dependencies = [
 
 [tool.coverage.run]
 branch = true
-source = ["clamav_client/**"]
+source_pkgs = ["clamav_client"]
 
 [tool.mypy]
 files = ["clamav_client", "tests"]
