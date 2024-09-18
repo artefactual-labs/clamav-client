@@ -25,6 +25,8 @@ if ! command -v uv > /dev/null; then
   exit 1
 fi
 
+curdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 markers=""
 if [[ " $@ " =~ " --fast " ]]; then
   markers="not slow"
@@ -44,14 +46,17 @@ combined=("${versions[@]}" "${prereleases[@]}")
 
 for version in "${combined[@]}"; do
   print_status "Running \`pytest\` using Python $version..."
-  uv run --frozen --python "$version" -- \
-    pytest -m "$markers" \
-      --junitxml=junit.xml \
-      --override-ini=junit_family=legacy \
-      --cov \
-      --cov-append \
-      --cov-report xml:coverage.xml \
-      --cov-report html
+  env \
+    UV_PROJECT_ENVIRONMENT="$curdir/.venv/test-runner/$version/" \
+    VIRTUAL_ENV="$curdir/.venv/test-runner/$version/" \
+      uv run --frozen --python "$version" -- \
+        pytest -m "$markers" \
+          --junitxml=junit.xml \
+          --override-ini=junit_family=legacy \
+          --cov \
+          --cov-append \
+          --cov-report xml:coverage.xml \
+          --cov-report html
 done
 
 print_status "Running \`ruff check\` using Python $latest..."
