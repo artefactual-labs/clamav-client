@@ -2,6 +2,18 @@
 
 set -euo pipefail
 
+versions=(
+  "3.8"
+  "3.9"
+  "3.10"
+  "3.11"
+  "3.12"
+)
+
+prereleases=(
+  "3.13"
+)
+
 print_status() {
   echo -en "\n➡️  $1\n\n"
 }
@@ -13,26 +25,24 @@ if ! command -v uv > /dev/null; then
   exit 1
 fi
 
-versions=(
-  "3.8"
-  "3.9"
-  "3.10"
-  "3.11"
-  "3.12"
-)
-
-latest="${versions[${#versions[@]}-1]}"
-
 markers=""
 if [[ " $@ " =~ " --fast " ]]; then
   markers="not slow"
 fi
 
+latest="${versions[${#versions[@]}-1]}"
+
 if [[ " $@ " =~ " --latest " ]]; then
   versions=("3.12")
+  prereleases=()
+elif [[ " $@ " =~ " --pre " ]]; then
+  versions=()
+  prereleases=("3.13")
 fi
 
-for version in "${versions[@]}"; do
+combined=("${versions[@]}" "${prereleases[@]}")
+
+for version in "${combined[@]}"; do
   print_status "Running \`pytest\` using Python $version..."
   uv run --frozen --python "$version" -- \
     pytest -m "$markers" \
