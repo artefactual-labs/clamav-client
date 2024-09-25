@@ -10,7 +10,7 @@ env:
   CLAMD_TCP_PORT: "3310"
 jobs:
   test:
-    name: "Test Python ${{ matrix.python-version }}"
+    name: "Test"
     runs-on: "ubuntu-22.04"
     steps:
       - name: "Check out repository"
