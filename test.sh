@@ -59,6 +59,9 @@ for version in "${combined[@]}"; do
           --cov-report html
 done
 
+export UV_PROJECT_ENVIRONMENT="$curdir/.venv/test-runner/$latest/" \
+export VIRTUAL_ENV="$curdir/.venv/test-runner/$latest/" \
+
 print_status "Running \`ruff check\` using Python $latest..."
 uv run --frozen --python "$latest" -- ruff check
 
