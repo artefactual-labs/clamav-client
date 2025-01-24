@@ -67,8 +67,8 @@ class ClamdNetworkSocket:
         """
         try:
             self.clamd_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.clamd_socket.connect((self.host, self.port))
             self.clamd_socket.settimeout(self.timeout)
+            self.clamd_socket.connect((self.host, self.port))
         except OSError as err:
             raise CommunicationError(self._error_message(err)) from err
 
