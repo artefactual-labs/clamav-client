@@ -23,7 +23,7 @@ CI = True if "CI" in environ or "GITHUB_REF" in environ else False
 # in the CI job.
 EICAR_NAME = "Win.Test.EICAR_HDB-1"
 if CI:
-    EICAR_NAME = "Eicar-Signature"
+    EICAR_NAME = "Eicar-Test-Signature"
 
 
 @pytest.fixture
