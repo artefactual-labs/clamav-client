@@ -8,7 +8,6 @@ from subprocess import STDOUT
 from subprocess import CalledProcessError
 from subprocess import check_output
 from typing import Any
-from typing import Dict
 from typing import Literal
 from typing import Optional
 from typing import TypedDict
@@ -102,7 +101,7 @@ class ScanResult:
 
 
 class Scanner(abc.ABC):
-    _info: Dict[ProgramName, ScannerInfo]
+    _info: dict[ProgramName, ScannerInfo]
     _program: ProgramName
 
     @abc.abstractmethod
@@ -209,8 +208,8 @@ class ClamscanScanner(Scanner):
 
     def scan(self, filename: str) -> ScanResult:
         result = ScanResult(filename=filename, state=None, details=None, err=None)
-        max_file_size = "--max-filesize=%dM" % self.max_file_size
-        max_scan_size = "--max-scansize=%dM" % self.max_scan_size
+        max_file_size = f"--max-filesize={int(self.max_file_size)}M"
+        max_scan_size = f"--max-scansize={int(self.max_scan_size)}M"
         try:
             self._call(max_file_size, max_scan_size, "--no-summary", filename)
         except CalledProcessError as err:

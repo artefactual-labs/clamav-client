@@ -3,15 +3,15 @@
 set -euo pipefail
 
 versions=(
-  "3.8"
   "3.9"
   "3.10"
   "3.11"
   "3.12"
+  "3.13"
 )
 
 prereleases=(
-  "3.13"
+  "3.14"
 )
 
 print_status() {
@@ -35,11 +35,11 @@ fi
 latest="${versions[${#versions[@]}-1]}"
 
 if [[ " $@ " =~ " --latest " ]]; then
-  versions=("3.12")
+  versions=("3.13")
   prereleases=()
 elif [[ " $@ " =~ " --pre " ]]; then
   versions=()
-  prereleases=("3.13")
+  prereleases=("3.14")
 fi
 
 combined=("${versions[@]}" "${prereleases[@]}")

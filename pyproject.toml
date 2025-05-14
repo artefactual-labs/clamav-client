@@ -4,7 +4,7 @@ dynamic = ["version"]
 description = "Python client library for the ClamAV antivirus."
 readme = "README.md"
 license = { text = "GPL-2.0" }
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = []
 
 [build-system]
@@ -21,10 +21,10 @@ markers = [
 
 [tool.uv]
 dev-dependencies = [
-    "mypy>=1.11.2",
-    "pytest-cov>=5.0.0",
-    "pytest>=8.3.2",
-    "ruff>=0.6.3",
+    "mypy>=1.15.0",
+    "pytest-cov>=6.1.1",
+    "pytest>=8.3.5",
+    "ruff>=0.11.9",
 ]
 
 [tool.coverage.run]

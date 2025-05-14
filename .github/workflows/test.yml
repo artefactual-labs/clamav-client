@@ -22,7 +22,7 @@ jobs:
           tcp_port: ${{ env.CLAMD_TCP_PORT }}
           stream_max_length: 1M
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v2
+        uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
           version: latest
