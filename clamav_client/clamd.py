@@ -11,9 +11,7 @@ import socket
 import struct
 from typing import Any
 from typing import BinaryIO
-from typing import Dict
 from typing import Optional
-from typing import Tuple
 from typing import Union
 
 scan_response = re.compile(
@@ -22,8 +20,8 @@ scan_response = re.compile(
 
 
 ScanStatus = str
-ScanResult = Tuple[ScanStatus, Optional[str]]
-ScanResults = Dict[str, ScanResult]
+ScanResult = tuple[ScanStatus, Optional[str]]
+ScanResults = dict[str, ScanResult]
 
 
 class ClamdError(Exception):
@@ -251,7 +249,7 @@ class ClamdNetworkSocket:
         """
         self.clamd_socket.close()
 
-    def _parse_response(self, msg: str) -> Tuple[Union[str, Any], ...]:
+    def _parse_response(self, msg: str) -> tuple[Union[str, Any], ...]:
         """
         parses responses for SCAN, CONTSCAN, MULTISCAN and STREAM commands.
         """
