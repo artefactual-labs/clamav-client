@@ -19,12 +19,6 @@ from clamav_client.scanner import get_scanner
 
 CI = True if "CI" in environ or "GITHUB_REF" in environ else False
 
-# TODO: figure out this discrepancy - likely because we're missing recent sigs
-# in the CI job.
-EICAR_NAME = "Win.Test.EICAR_HDB-1"
-if CI:
-    EICAR_NAME = "Eicar-Test-Signature"
-
 
 @pytest.fixture
 def ci() -> bool:
@@ -33,7 +27,7 @@ def ci() -> bool:
 
 @pytest.fixture
 def eicar_name() -> str:
-    return EICAR_NAME
+    return "Win.Test.EICAR_HDB-1"
 
 
 @pytest.fixture
