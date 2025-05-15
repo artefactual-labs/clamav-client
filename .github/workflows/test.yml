@@ -21,6 +21,8 @@ jobs:
           unix_socket: ${{ env.CLAMD_UNIX_SOCKET }}
           tcp_port: ${{ env.CLAMD_TCP_PORT }}
           stream_max_length: 1M
+          db_main: true
+          db_daily: true
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v6
         with:
