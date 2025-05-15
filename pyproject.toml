@@ -7,6 +7,12 @@ license = { text = "GPL-2.0" }
 requires-python = ">=3.9"
 dependencies = []
 
+[project.urls]
+Homepage = "https://github.com/artefactual-labs/clamav-client"
+Documentation = "https://github.com/artefactual-labs/clamav-client/blob/main/README.md"
+Changes = "https://github.com/artefactual-labs/clamav-client/deployments"
+Source = "https://github.com/artefactual-labs/clamav-client"
+
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
