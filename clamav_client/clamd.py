@@ -178,9 +178,9 @@ class ClamdNetworkSocket:
             chunk = buff.read(max_chunk_size)
             while chunk:
                 size = struct.pack(b"!L", len(chunk))
-                self.clamd_socket.send(size + chunk)
+                self.clamd_socket.sendall(size + chunk)
                 chunk = buff.read(max_chunk_size)
-            self.clamd_socket.send(struct.pack(b"!L", 0))
+            self.clamd_socket.sendall(struct.pack(b"!L", 0))
             result = self._recv_response()
             if len(result) > 0:
                 if result == "INSTREAM size limit exceeded. ERROR":
@@ -217,7 +217,7 @@ class ClamdNetworkSocket:
         if args:
             concat_args = " " + " ".join(args)
         send = f"n{cmd}{concat_args}\n".encode()
-        self.clamd_socket.send(send)
+        self.clamd_socket.sendall(send)
 
     def _recv_response(self) -> str:
         """
