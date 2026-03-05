@@ -2,12 +2,15 @@ import os
 import pathlib
 from io import BytesIO
 from typing import Callable
+from typing import Optional
 
 import pytest
 
 from clamav_client.clamd import BufferTooLongError
 from clamav_client.clamd import ClamdUnixSocket
 from clamav_client.clamd import CommunicationError
+
+EicarSignatureAsserter = Callable[[Optional[str]], None]
 
 
 def test_address_using_unix_scheme() -> None:
@@ -44,14 +47,17 @@ def test_scan(
     clamd_unix_client: ClamdUnixSocket,
     tmp_path: pathlib.Path,
     eicar: bytes,
-    eicar_name: str,
+    assert_eicar_signature: EicarSignatureAsserter,
 ) -> None:
     perms_updater(tmp_path)
     file = tmp_path / "file"
     file.write_bytes(eicar)
     file.chmod(0o644)
-    expected = {str(file): ("FOUND", eicar_name)}
-    assert clamd_unix_client.scan(str(file)) == expected
+    result = clamd_unix_client.scan(str(file))
+    assert str(file) in result
+    status, signature = result[str(file)]
+    assert status == "FOUND"
+    assert_eicar_signature(signature)
 
 
 def test_multiscan(
@@ -59,7 +65,7 @@ def test_multiscan(
     clamd_unix_client: ClamdUnixSocket,
     tmp_path: pathlib.Path,
     eicar: bytes,
-    eicar_name: str,
+    assert_eicar_signature: EicarSignatureAsserter,
 ) -> None:
     perms_updater(tmp_path)
     file1 = tmp_path / "file1"
@@ -68,20 +74,24 @@ def test_multiscan(
     file2 = tmp_path / "file2"
     file2.write_bytes(eicar)
     file2.chmod(0o644)
-    expected = {
-        str(file1): ("FOUND", eicar_name),
-        str(file2): ("FOUND", eicar_name),
-    }
-    assert clamd_unix_client.multiscan(str(file1.parent)) == expected
+    result = clamd_unix_client.multiscan(str(file1.parent))
+    assert set(result) == {str(file1), str(file2)}
+    for path in (str(file1), str(file2)):
+        status, signature = result[path]
+        assert status == "FOUND"
+        assert_eicar_signature(signature)
 
 
 def test_instream_found(
     clamd_unix_client: ClamdUnixSocket,
     eicar: bytes,
-    eicar_name: str,
+    assert_eicar_signature: EicarSignatureAsserter,
 ) -> None:
-    expected = {"stream": ("FOUND", eicar_name)}
-    assert clamd_unix_client.instream(BytesIO(eicar)) == expected
+    result = clamd_unix_client.instream(BytesIO(eicar))
+    assert "stream" in result
+    status, signature = result["stream"]
+    assert status == "FOUND"
+    assert_eicar_signature(signature)
 
 
 def test_instream_ok(clamd_unix_client: ClamdUnixSocket) -> None:

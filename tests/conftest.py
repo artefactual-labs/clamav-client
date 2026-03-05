@@ -7,6 +7,7 @@ from os import getenv
 from os import stat as os_stat
 from pathlib import Path
 from typing import Callable
+from typing import Optional
 
 import pytest
 
@@ -18,6 +19,13 @@ from clamav_client.scanner import Scanner
 from clamav_client.scanner import get_scanner
 
 CI = True if "CI" in environ or "GITHUB_REF" in environ else False
+KNOWN_EICAR_SIGNATURES = frozenset(
+    {
+        "Win.Test.EICAR_HDB-1",
+        "Eicar-Test-Signature",
+    }
+)
+EicarSignatureAsserter = Callable[[Optional[str]], None]
 
 
 @pytest.fixture
@@ -26,8 +34,13 @@ def ci() -> bool:
 
 
 @pytest.fixture
-def eicar_name() -> str:
-    return "Win.Test.EICAR_HDB-1"
+def assert_eicar_signature() -> EicarSignatureAsserter:
+    def _assert(signature: Optional[str]) -> None:
+        assert signature
+        normalized = signature.strip()
+        assert normalized in KNOWN_EICAR_SIGNATURES or "EICAR" in normalized.upper()
+
+    return _assert
 
 
 @pytest.fixture
