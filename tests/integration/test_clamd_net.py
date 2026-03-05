@@ -1,10 +1,14 @@
 from io import BytesIO
+from typing import Callable
+from typing import Optional
 
 import pytest
 
 from clamav_client.clamd import BufferTooLongError
 from clamav_client.clamd import ClamdNetworkSocket
 from clamav_client.clamd import CommunicationError
+
+EicarSignatureAsserter = Callable[[Optional[str]], None]
 
 
 def test_cannot_connect() -> None:
@@ -31,10 +35,13 @@ def test_stats(clamd_net_client: ClamdNetworkSocket) -> None:
 def test_instream_found(
     clamd_net_client: ClamdNetworkSocket,
     eicar: bytes,
-    eicar_name: str,
+    assert_eicar_signature: EicarSignatureAsserter,
 ) -> None:
-    expected = {"stream": ("FOUND", eicar_name)}
-    assert clamd_net_client.instream(BytesIO(eicar)) == expected
+    result = clamd_net_client.instream(BytesIO(eicar))
+    assert "stream" in result
+    status, signature = result["stream"]
+    assert status == "FOUND"
+    assert_eicar_signature(signature)
 
 
 def test_instream_ok(clamd_net_client: ClamdNetworkSocket) -> None:
